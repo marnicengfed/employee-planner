@@ -7,6 +7,16 @@ if (document.body && document.body.firstChild && document.body.firstChild.nodeTy
   if (txt.toLowerCase().includes('index.html')) {
     document.body.firstChild.remove();
   }
+// Remove any stray text node containing 'index.html' anywhere in the body
+if (document.body) {
+  const nodes = Array.from(document.body.childNodes);
+  nodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().toLowerCase().includes('index.html')) {
+      node.remove();
+    }
+  });
+}
+
 }
 
 // API endpoints for interacting with serverless functions

@@ -1,0 +1,13 @@
+{
+  "name": "employee-planner",
+  "version": "1.0.0",
+  "description": "A simple employee timeline planning tool deployed on Netlify with Netlify DB.",
+  "main": "script.js",
+  "scripts": {
+    "start": "netlify dev",
+    "build": "echo 'Static site – no build step'"
+  },
+  "dependencies": {
+    "@netlify/neon": "^0.2.0"
+  }
+}

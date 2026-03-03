@@ -1,0 +1,57 @@
+index.html<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Timeline Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Employee Timeline Planner</h1>
+    <p>Visualize your staff over time and plan ahead</p>
+  </header>
+  <section id="controls">
+    <label for="shopSelect">Shop:</label>
+    <select id="shopSelect"></select>
+    <button id="addShopBtn">Add shop</button>
+  </section>
+  <section id="overview">
+    <span id="activeCount">Active employees: 0</span>
+    <span id="hoverDate"></span>
+  </section>
+  <section id="timelineWrapper">
+    <div id="timelineContainer"></div>
+  </section>
+  <section id="listContainer">
+    <h2>Employees</h2>
+    <table id="employeeTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Shop</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <section id="formContainer">
+    <h2 id="formTitle">Add Employee</h2>
+    <form id="employeeForm">
+      <input type="hidden" id="employeeId">
+      <label>Name<br><input type="text" id="name" required></label>
+      <label>Start date<br><input type="date" id="startDate" required></label>
+      <label>End date<br><input type="date" id="endDate"></label>
+      <label>Shop<br><input type="text" id="shopInput" required></label>
+      <div class="buttons">
+        <button type="submit" id="saveBtn">Save</button>
+        <button type="button" id="cancelBtn">Cancel</button>
+      </div>
+    </form>
+  </section>
+  <script src="script.js"></script>
+</body>
+</html>

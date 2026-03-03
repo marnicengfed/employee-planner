@@ -8,6 +8,6 @@
     "build": "echo 'Static site – no build step'"
   },
   "dependencies": {
-    @"@netlify/neon": "*"
+    "@netlify/neon": "*"
   }
 }

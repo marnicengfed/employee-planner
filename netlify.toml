@@ -1,0 +1,5 @@
+[functions]
+  node_bundler = "esbuild"
+
+[dev]
+  functions = "netlify/functions"

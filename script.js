@@ -1,14 +1,26 @@
 // Client-side logic for the employee timeline planner
 
-// API endpoint for interacting with serverless function
-const API_URL = '/.netlify/functions/employees';
+// Remove any stray text node that may appear before the first element (e.g. "index.html" rendered above the page).
+if (document.body && document.body.firstChild && document.body.firstChild.nodeType === Node.TEXT_NODE) {
+  const txt = document.body.firstChild.textContent.trim();
+  // If the text looks like a filename or other extraneous string, remove it.
+  if (txt.toLowerCase().includes('index.html')) {
+    document.body.firstChild.remove();
+  }
+}
+
+// API endpoints for interacting with serverless functions
+const API_EMPLOYEES = '/.netlify/functions/employees';
+const API_SHOPS = '/.netlify/functions/shops';
 
 let employees = [];
+let shops = [];
 let currentShop = '';
 
 // DOM elements
 const shopSelect = document.getElementById('shopSelect');
 const addShopBtn = document.getElementById('addShopBtn');
+const removeShopBtn = document.getElementById('removeShopBtn');
 const activeCountEl = document.getElementById('activeCount');
 const hoverDateEl = document.getElementById('hoverDate');
 const timelineContainer = document.getElementById('timelineContainer');
@@ -41,21 +53,32 @@ function monthsBetween(start, end) {
   return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
 }
 
-// Load all employees (without filter) to build shop list
+// Load list of shops from server
+async function loadShops() {
+  try {
+    const res = await fetch(API_SHOPS);
+    const data = await res.json();
+    // Expect array of objects with at least a name property
+    shops = data.map(s => s.name);
+    // If we don't have a current shop yet, choose the first available
+    if (!currentShop && shops.length > 0) {
+      currentShop = shops[0];
+    }
+    buildShopOptions();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Load all employees for a given shop
 async function loadAllEmployees() {
   try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    employees = data;
-    buildShopList();
-    // If there is at least one shop, set currentShop to the first one
-    if (!currentShop && employees.length > 0) {
-      currentShop = [...new Set(employees.map(e => e.shop))][0];
+    // Ensure we have shops loaded first
+    await loadShops();
+    // Load employees for the current shop if defined
+    if (currentShop) {
+      await loadEmployeesForShop(currentShop);
     }
-    // If still no shop, create default shop
-    if (!currentShop) currentShop = 'Default';
-    shopSelect.value = currentShop;
-    loadEmployeesForShop(currentShop);
   } catch (err) {
     console.error(err);
   }
@@ -64,7 +87,7 @@ async function loadAllEmployees() {
 // Load employees for the current shop
 async function loadEmployeesForShop(shop) {
   try {
-    const url = shop ? `${API_URL}?shop=${encodeURIComponent(shop)}` : API_URL;
+    const url = shop ? `${API_EMPLOYEES}?shop=${encodeURIComponent(shop)}` : API_EMPLOYEES;
     const res = await fetch(url);
     const data = await res.json();
     employees = data;
@@ -76,20 +99,20 @@ async function loadEmployeesForShop(shop) {
   }
 }
 
-// Build list of shops from all employees and update select options
-function buildShopList() {
-  const shops = [...new Set(employees.map(e => e.shop))];
-  // Add currentShop if not present
-  if (currentShop && !shops.includes(currentShop)) shops.push(currentShop);
-  // Always include a placeholder if there are no shops
-  if (shops.length === 0) shops.push('Default');
+// Build shop select options from shops array
+function buildShopOptions() {
   shopSelect.innerHTML = '';
-  shops.forEach(shop => {
+  // If there are no shops, leave select empty
+  shops.forEach(shopName => {
     const option = document.createElement('option');
-    option.value = shop;
-    option.textContent = shop;
+    option.value = shopName;
+    option.textContent = shopName;
     shopSelect.appendChild(option);
   });
+  if (currentShop) {
+    shopSelect.value = currentShop;
+    shopInput.value = currentShop;
+  }
 }
 
 // Update active employees count for today or hovered date
@@ -221,7 +244,7 @@ function resetForm() {
 async function deleteEmployee(id) {
   if (!confirm('Delete this employee?')) return;
   try {
-    const url = `${API_URL}?id=${encodeURIComponent(id)}`;
+    const url = `${API_EMPLOYEES}?id=${encodeURIComponent(id)}`;
     const res = await fetch(url, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete');
     await loadEmployeesForShop(currentShop);
@@ -244,7 +267,7 @@ employeeForm.addEventListener('submit', async e => {
   };
   const method = id ? 'PUT' : 'POST';
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(API_EMPLOYEES, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -252,9 +275,19 @@ employeeForm.addEventListener('submit', async e => {
     if (!res.ok) throw new Error('Failed to save');
     resetForm();
     currentShop = payload.shop;
+    // Ensure shop exists in shops list
+    if (!shops.includes(currentShop)) {
+      // Persist new shop via API
+      await fetch(API_SHOPS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: currentShop }),
+      });
+    }
+    await loadShops();
     shopSelect.value = currentShop;
+    shopInput.value = currentShop;
     await loadEmployeesForShop(currentShop);
-    buildShopList();
   } catch (err) {
     console.error(err);
     alert('Error saving employee');
@@ -277,16 +310,55 @@ shopSelect.addEventListener('change', () => {
 addShopBtn.addEventListener('click', () => {
   const name = prompt('Enter new shop name');
   if (name) {
-    currentShop = name.trim();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    currentShop = trimmed;
+    // Persist to server
+    fetch(API_SHOPS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: currentShop }),
+    })
+      .then(() => loadShops())
+      .then(() => {
+        shopSelect.value = currentShop;
+        shopInput.value = currentShop;
+        employees = [];
+        updateActiveCount();
+        updateEmployeeTable();
+        renderTimeline();
+      })
+      .catch(err => console.error(err));
+  }
+});
+
+// Remove current shop and its employees
+removeShopBtn.addEventListener('click', async () => {
+  if (!currentShop) return;
+  const confirmDelete = confirm('Delete this shop and all its employees?');
+  if (!confirmDelete) return;
+  try {
+    // First delete employees of this shop
+    // Fetch current employees
+    const resEmployees = await fetch(`${API_EMPLOYEES}?shop=${encodeURIComponent(currentShop)}`);
+    const empList = await resEmployees.json();
+    // Delete each employee sequentially
+    for (const emp of empList) {
+      await fetch(`${API_EMPLOYEES}?id=${encodeURIComponent(emp.id)}`, { method: 'DELETE' });
+    }
+    // Delete shop itself
+    await fetch(`${API_SHOPS}?name=${encodeURIComponent(currentShop)}`, { method: 'DELETE' });
+    // Reload shops and select first one
+    currentShop = '';
+    await loadShops();
+    if (shops.length > 0) {
+      currentShop = shops[0];
+    }
     shopInput.value = currentShop;
-    // Rebuild shop list and select new shop
-    buildShopList();
-    shopSelect.value = currentShop;
-    // Clear current employees display since there are none yet
-    employees = [];
-    updateActiveCount();
-    updateEmployeeTable();
-    renderTimeline();
+    await loadEmployeesForShop(currentShop);
+  } catch (err) {
+    console.error(err);
+    alert('Error deleting shop');
   }
 });
 

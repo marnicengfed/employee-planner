@@ -1,0 +1,173 @@
+/* Basic styles for the employee planner */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+  background-color: #f7f9fc;
+  color: #333;
+}
+
+header {
+  background-color: #4051b5;
+  color: white;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+section {
+  padding: 1rem 1.5rem;
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#controls select,
+#controls button {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+#overview {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+#timelineWrapper {
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  min-height: 200px;
+}
+
+#timelineContainer {
+  position: relative;
+  height: auto;
+  min-height: 200px;
+}
+
+.timeline-row {
+  position: absolute;
+  height: 24px;
+  border-radius: 4px;
+  background-color: #6375dc;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#employeeTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: white;
+}
+
+#employeeTable th,
+#employeeTable td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+#employeeTable th {
+  background-color: #eef2ff;
+  font-weight: normal;
+}
+
+#formContainer {
+  margin-top: 1rem;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+#formContainer h2 {
+  margin-top: 0;
+}
+
+#employeeForm label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+#employeeForm input {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.buttons button {
+  padding: 0.5rem 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.buttons button#saveBtn {
+  background-color: #4051b5;
+  color: white;
+}
+
+.buttons button#cancelBtn {
+  background-color: #ddd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  #controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  #overview {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  #employeeTable th,
+  #employeeTable td {
+    font-size: 0.8rem;
+  }
+  .timeline-row {
+    height: 20px;
+    font-size: 0.7rem;
+  }
+}
